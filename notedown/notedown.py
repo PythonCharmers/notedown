@@ -123,17 +123,18 @@ class MarkdownReader(NotebookReader):
             caption_comments - whether to derive a caption and id from the
                                cell contents
         """
-        if not code_regex:
+        # Need to think through the relationship between `code_regex` and `match`:
+        assert code_regex is None
+
+        if match in ('fenced', 'strict'):
+            self.code_regex = self.fenced_regex
+        elif match == 'all':
             self.code_regex = r"({}|{})".format(self.fenced_regex,
                                                 self.indented_regex)
-        elif code_regex == 'fenced':
-            self.code_regex = self.fenced_regex
-        elif code_regex == 'indented':
-            self.code_regex = self.indented_regex
-        elif code_regex == 'old fenced':
-            self.code_regex = self.old_fenced_regex
         else:
-            self.code_regex = code_regex
+            # Assume 'all' for a specific language
+            self.code_regex = r"({}|{})".format(self.fenced_regex,
+                                                self.indented_regex)
 
         self.code_pattern = re.compile(self.code_regex, self.re_flags)
 
