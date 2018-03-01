@@ -4,11 +4,8 @@ import nbformat
 
 from tornado import web
 
-try:
-    import notebook.transutils
-    from notebook.services.contents.filemanager import FileContentsManager
-except ImportError:
-    from IPython.html.services.contents.filemanager import FileContentsManager
+import notebook.transutils
+from notebook.services.contents.filemanager import FileContentsManager
 
 from .main import ftdetect, convert
 
