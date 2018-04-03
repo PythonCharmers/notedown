@@ -16,6 +16,7 @@ from .notedown import (MarkdownReader,
                        Knitr,
                        run,
                        strip)
+from .includes import recursive_include
 
 
 try:
@@ -194,6 +195,16 @@ def command_line_parser():
                               "converted into code cells. "
                               "choose from 'all' (default), 'fenced', "
                               "'strict' or a specific language to match on"))
+    parser.add_argument('--includes',
+                        action='store_true',
+                        help=("use org-style includes recursively to build "
+                              "larger markdown files for translation. "
+                              "Requires that the input format is markdown."))
+    parser.add_argument('--document_tree',
+                        metavar='PATH',
+                        help=("Generate a document tree showing the linkage "
+                              "between included files, and write to path. "
+                              "Requires networkx and pydot"))
     parser.add_argument('--examples',
                         help=('show example usage'),
                         action='store_true')
@@ -270,6 +281,24 @@ def main(args, help=''):
 
     reader = readers[informat]
     writer = writers[outformat]
+
+    # TODO: If args.include then read the notebook and get a new input file
+    if args.includes:
+        if informat != 'markdown':
+            sys.exit('Can only use includes with markdown files')
+
+        if args.document_tree:
+            import networkx as nx
+            doc_tree = nx.DiGraph()
+        else:
+            doc_tree = None
+
+        input_file = recursive_include(input_file, doc_tree)
+
+        if args.document_tree:
+            import pydot
+            from networkx.drawing.nx_pydot import write_dot
+            write_dot(doc_tree, args.document_tree)
 
     with input_file as ip:
         notebook = reader.read(ip, as_version=4)
